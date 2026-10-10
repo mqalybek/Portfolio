@@ -1,0 +1,53 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PromptBlock from '../components/PromptBlock.astro';
+
+const prompts = (await getCollection('prompts')).sort((a, b) => a.data.order - b.data.order);
+const fromWork = (await getCollection('work'))
+  .filter((w) => w.data.prompt)
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title="Prompt Library" description="Prompt templates and techniques I use in production.">
+  <section class="case-hero container">
+    <p class="eyebrow">Prompt library</p>
+    <h1 class="case-hero__title">How I <em class="serif" style="color:var(--accent)">talk</em> to models.</h1>
+    <p class="case-hero__summary">
+      Templates and techniques from real projects. <span style="color:var(--accent)">[Slots]</span> and
+      <span style="color:var(--accent)">{'{variables}'}</span> are highlighted — copy and adapt.
+    </p>
+  </section>
+
+  <section class="section" style="padding-top:64px">
+    <div class="container">
+      <p class="eyebrow" style="margin-bottom:20px">Techniques</p>
+      <div class="prompt-grid">
+        {prompts.map((p) => (
+          <div class="reveal">
+            <PromptBlock prompt={p.data.prompt} label={`${p.data.kind} · ${p.data.model}`}>
+              <p class="prompt-card__note"><strong style="color:var(--text);font-weight:500">{p.data.title}.</strong> {p.data.note}</p>
+            </PromptBlock>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {fromWork.length > 0 && (
+    <section class="section" style="padding-top:0">
+      <div class="container">
+        <p class="eyebrow" style="margin-bottom:20px">From projects</p>
+        <div class="prompt-grid">
+          {fromWork.map((w) => (
+            <div class="reveal">
+              <PromptBlock prompt={w.data.prompt!} label={w.data.title} params={w.data.params}>
+                <p class="prompt-card__note"><a href={`/work/${w.id}`} style="color:var(--accent)">See the result →</a></p>
+              </PromptBlock>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>

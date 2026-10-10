@@ -1,0 +1,157 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import WorkCard from '../components/WorkCard.astro';
+import PromptBlock from '../components/PromptBlock.astro';
+import { site } from '../site.config';
+
+const works = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const featured = works.filter((w) => w.data.featured).slice(0, 6);
+const showcase = works.find((w) => w.data.prompt && w.data.preview);
+const tools = site.stack.flatMap((g) => g.tools);
+
+const steps = [
+  { title: 'Brief', text: 'Turn a vague idea into a clear creative intent: audience, mood, references, constraints.' },
+  { title: 'Prompt system', text: 'Build a reusable prompt framework — style bible, shot grammar, variables — not one-off prompts.' },
+  { title: 'Generate & iterate', text: 'Pick the right model for each shot, compare versions, change one variable at a time.' },
+  { title: 'Finish', text: 'Edit, upscale, grade and sound design — so the result looks like production, not a demo.' },
+];
+---
+
+<Base>
+  <section class="hero">
+    <div class="hero__media">
+      <video
+        id="reel"
+        autoplay
+        muted
+        loop
+        playsinline
+        poster={site.showreel.poster}
+        src={site.showreel.src}
+        width="1280"
+        height="720"
+        aria-hidden="true"
+      ></video>
+    </div>
+
+    <div class="container hero__intro">
+      <div class="hero__eyebrow" style="--i:0">
+        <span class="status-dot"></span>
+        <span class="eyebrow">{site.role} · {site.location}</span>
+      </div>
+      <h1 class="hero__title" style="--i:1">I turn <em>prompts</em> into pictures that move.</h1>
+      <div class="hero__row" style="--i:2">
+        <p class="hero__lead">
+          I'm {site.shortName} — I design prompt systems and use them to make films, ads and visuals
+          that look finished, not generated.
+        </p>
+        <div class="hero__ctas">
+          <a class="btn btn--accent" href="/work">View work <span class="arrow">→</span></a>
+          <a class="btn" href="#contact">Get in touch</a>
+        </div>
+      </div>
+    </div>
+
+    <button class="hero__pause" type="button" id="reel-toggle" aria-label="Pause background video">
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor" /></svg>
+    </button>
+  </section>
+
+  <div class="marquee" aria-label="Tools I use">
+    <div class="marquee__track">
+      {[0, 1].map((copy) => (
+        <div class="marquee__item" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {tools.map((t) => <span>{t}</span>)}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title reveal">Selected <em>work</em></h2>
+        <a class="btn reveal" href="/work">All projects <span class="arrow">→</span></a>
+      </div>
+      <div class="grid">
+        {featured.map((w, i) => <WorkCard work={w} eager={i < 2} />)}
+      </div>
+    </div>
+  </section>
+
+  {showcase && (
+    <section class="section" style="padding-top:0">
+      <div class="container case-grid">
+        <div class="sticky">
+          <p class="eyebrow reveal">Prompt → Result</p>
+          <h2 class="section__title reveal" style="font-size:clamp(36px,5vw,72px)">
+            I show the <em>prompt</em>, not just the picture.
+          </h2>
+          <p class="muted reveal" style="max-width:44ch">
+            Every project comes with the prompts, the pipeline and the iterations behind it — because the
+            thinking is the skill.
+          </p>
+          <a class="btn reveal" href={`/work/${showcase.id}`} style="margin-top:16px">
+            See the full case <span class="arrow">→</span>
+          </a>
+        </div>
+        <div style="display:grid;gap:16px">
+          <div class="frame reveal">
+            <video src={showcase.data.preview} poster={showcase.data.cover} autoplay muted loop playsinline
+              width="960" height="540" loading="lazy" aria-hidden="true"></video>
+          </div>
+          <div class="reveal">
+            <PromptBlock
+              prompt={showcase.data.prompt!}
+              label={showcase.data.tools[0] ?? 'Prompt'}
+              params={showcase.data.params}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title reveal">How I <em>work</em></h2>
+      </div>
+      <div class="steps">
+        {steps.map((s, i) => (
+          <div class="step reveal">
+            <span class="step__num">0{i + 1}</span>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const video = document.getElementById('reel') as HTMLVideoElement | null;
+  const toggle = document.getElementById('reel-toggle');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (video && toggle) {
+    const setIcon = (paused: boolean) => {
+      toggle.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
+      toggle.innerHTML = paused
+        ? '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor"/></svg>';
+    };
+    if (reduce.matches) {
+      video.removeAttribute('autoplay');
+      video.pause();
+      setIcon(true);
+    }
+    toggle.addEventListener('click', () => {
+      if (video.paused) video.play();
+      else video.pause();
+      setIcon(video.paused);
+    });
+  }
+</script>

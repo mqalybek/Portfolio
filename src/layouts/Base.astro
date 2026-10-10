@@ -1,0 +1,73 @@
+---
+import '../styles/global.css';
+import Contact from '../components/Contact.astro';
+import { site } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  hideContact?: boolean;
+}
+
+const { title, description = site.description, image = site.showreel.poster, hideContact = false } = Astro.props;
+const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.role}`;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const ogImage = Astro.site ? new URL(image, Astro.site).href : image;
+
+const links = [
+  { href: '/work', label: 'Work' },
+  { href: '/prompts', label: 'Prompts' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#08080a" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {Astro.site && <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
+    />
+  </head>
+  <body>
+    <a class="visually-hidden" href="#main">Skip to content</a>
+    <header class="nav">
+      <a class="nav__logo" href="/" aria-label={`${site.name} — home`}>
+        <i class="nav__dot"></i><span>{site.name}</span>
+      </a>
+      <nav class="nav__links" aria-label="Main">
+        {links.map((l) => (
+          <a href={l.href} aria-current={path.startsWith(l.href) ? 'page' : undefined}>{l.label}</a>
+        ))}
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    {!hideContact && <Contact />}
+
+    <script>
+      import '../scripts/card-previews';
+    </script>
+  </body>
+</html>

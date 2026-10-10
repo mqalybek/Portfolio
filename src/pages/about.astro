@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../site.config';
+
+// Put your photo at public/me.jpg and set it here, e.g. '/me.jpg'
+const photo = '';
+---
+
+<Base title="About" description={`About ${site.name}, ${site.role}.`}>
+  <section class="case-hero container">
+    <p class="eyebrow">About</p>
+    <h1 class="case-hero__title">Engineer's <em class="serif" style="color:var(--accent)">precision,</em><br />creator's eye.</h1>
+  </section>
+
+  <section class="section" style="padding-top:64px">
+    <div class="container about-grid">
+      <div class="portrait reveal">
+        {photo ? <img src={photo} alt={site.name} /> : <span aria-hidden="true">K</span>}
+      </div>
+
+      <div class="prose">
+        <p style="font-size:clamp(22px,2.4vw,30px);line-height:1.35;color:var(--text);letter-spacing:-0.015em">
+          I'm {site.shortName}. I make films, ads and visuals with generative AI — and I build the prompt systems
+          that make those results repeatable.
+        </p>
+        <p>
+          My background is engineering: years of building complex simulation models taught me to define a problem
+          precisely, change one variable at a time and check results against reality. That turns out to be exactly
+          what good prompting is.
+        </p>
+        <p>
+          Today I combine both sides: a structured, testable approach to prompts — and a strong visual taste for
+          story, light and motion. I'm looking for a team where I can create as an <strong>AI Creator</strong> and
+          scale that craft as a <strong>Prompt Engineer</strong>.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:32px">
+          <a class="btn btn--accent" href={`mailto:${site.email}`} style="color:var(--accent-ink);text-decoration:none">
+            Email me <span class="arrow">→</span>
+          </a>
+          {site.cv && (
+            <a class="btn" href={site.cv} target="_blank" style="color:inherit;text-decoration:none">Download CV ↓</a>
+          )}
+        </div>
+
+        <h2>Toolkit</h2>
+        <div class="stack">
+          {site.stack.map((g) => (
+            <div class="stack__row">
+              <span class="eyebrow" style="padding-top:6px">{g.group}</span>
+              <ul>{g.tools.map((t) => <li class="chip">{t}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+
+        <h2>What I bring</h2>
+        <ul>
+          <li><strong>Prompt systems</strong> — style bibles, shot grammars, templates with variables and output schemas.</li>
+          <li><strong>Consistency</strong> — characters, worlds and brand looks that hold across dozens of shots.</li>
+          <li><strong>Production finish</strong> — edit, upscale, grade and sound, not raw generations.</li>
+          <li><strong>AI × Engineering</strong> — I automate workflows and ship tools with AI coding assistants.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>

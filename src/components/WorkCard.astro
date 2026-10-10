@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  work: CollectionEntry<'work'>;
+  showSummary?: boolean;
+  eager?: boolean;
+}
+
+const { work, showSummary = false, eager = false } = Astro.props;
+const d = work.data;
+---
+
+<a
+  href={`/work/${work.id}`}
+  class={`card card--${d.size} reveal`}
+  data-category={d.category}
+  data-work-card
+>
+  <div class="card__media" style={`view-transition-name: media-${work.id}`}>
+    <span class="card__badge">{d.category}</span>
+    {d.demo && <span class="card__badge card__badge--demo">Demo</span>}
+    <img src={d.cover} alt="" width="960" height="540" loading={eager ? undefined : 'lazy'} decoding="async" />
+    {d.preview && <video data-src={d.preview} muted loop playsinline preload="none" width="960" height="540" aria-hidden="true" />}
+    <span class="card__play" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1.5v11l9-5.5z" fill="currentColor" /></svg>
+    </span>
+  </div>
+  <div class="card__meta">
+    <h3 class="card__title">{d.title}</h3>
+    <span class="card__sub">{d.year}</span>
+  </div>
+  {showSummary && <p class="card__summary">{d.summary}</p>}
+</a>

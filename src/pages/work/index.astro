@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import { categories } from '../../site.config';
+
+const works = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const counts = Object.fromEntries(categories.map((c) => [c, works.filter((w) => w.data.category === c).length]));
+const used = categories.filter((c) => counts[c] > 0);
+---
+
+<Base title="Work" description="AI films, ads, characters and prompt systems.">
+  <section class="case-hero container">
+    <p class="eyebrow">Index · {works.length} projects</p>
+    <h1 class="case-hero__title">All <em class="serif" style="color:var(--accent)">work</em></h1>
+  </section>
+
+  <section class="section" style="padding-top:56px">
+    <div class="container">
+      <div class="filters" role="group" aria-label="Filter by category">
+        <button type="button" data-filter="all" aria-pressed="true">All<sup>{works.length}</sup></button>
+        {used.map((c) => (
+          <button type="button" data-filter={c} aria-pressed="false">{c}<sup>{counts[c]}</sup></button>
+        ))}
+      </div>
+      <div class="grid">
+        {works.map((w, i) => <WorkCard work={w} showSummary eager={i < 2} />)}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-work-card]');
+
+  function apply(filter: string) {
+    const run = () => {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      cards.forEach((c) => (c.hidden = filter !== 'all' && c.dataset.category !== filter));
+    };
+    // animate the re-layout where supported
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.startViewTransition(run);
+    } else run();
+    const url = new URL(location.href);
+    if (filter === 'all') url.searchParams.delete('c');
+    else url.searchParams.set('c', filter);
+    history.replaceState(null, '', url);
+  }
+
+  buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filter!)));
+  const initial = new URLSearchParams(location.search).get('c');
+  if (initial && [...buttons].some((b) => b.dataset.filter === initial)) apply(initial);
+</script>

@@ -1,0 +1,21 @@
+---
+import { site } from '../site.config';
+const socials = site.socials.filter((s) => s.url);
+const year = new Date().getFullYear();
+---
+
+<section class="contact" id="contact">
+  <div class="container">
+    <p class="eyebrow reveal">Available for full-time & projects</p>
+    <h2 class="contact__title reveal">Let's make<br />something <em>unreal.</em></h2>
+    <a class="contact__mail reveal" href={`mailto:${site.email}`}>{site.email} ↗</a>
+
+    <footer class="footer">
+      <span>© {year} {site.name} · {site.role}</span>
+      <nav aria-label="Social">
+        {socials.map((s) => <a href={s.url} target="_blank" rel="noopener">{s.label}</a>)}
+        {site.cv && <a href={site.cv} target="_blank">CV ↓</a>}
+      </nav>
+    </footer>
+  </div>
+</section>

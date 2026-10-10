@@ -1,0 +1,66 @@
+---
+// Plays .mp4, Bunny/any .m3u8 (HLS), YouTube, Vimeo or a Bunny iframe link.
+interface Props {
+  src: string;
+  poster?: string;
+  aspect?: string;
+  title: string;
+  transitionName?: string;
+}
+
+const { src, poster, aspect = '16 / 9', title, transitionName } = Astro.props;
+
+function embedUrl(url: string): string | null {
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1`;
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?dnt=1`;
+  if (url.includes('iframe.mediadelivery.net') || url.includes('player.mediadelivery.net')) return url;
+  return null;
+}
+
+const embed = embedUrl(src);
+const isHls = /\.m3u8(\?|$)/.test(src);
+const style = `aspect-ratio: ${aspect};${transitionName ? ` view-transition-name: ${transitionName};` : ''}`;
+---
+
+<div class="player" style={style}>
+  {embed ? (
+    <iframe
+      src={embed}
+      title={title}
+      loading="lazy"
+      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+      allowfullscreen
+    />
+  ) : (
+    <video
+      controls
+      playsinline
+      preload="metadata"
+      poster={poster}
+      width="1920"
+      height="1080"
+      src={isHls ? undefined : src}
+      data-hls={isHls ? src : undefined}
+      aria-label={title}
+    />
+  )}
+</div>
+
+<script>
+  // Safari plays HLS natively; other browsers load hls.js only when needed.
+  for (const video of document.querySelectorAll<HTMLVideoElement>('video[data-hls]')) {
+    const src = video.dataset.hls!;
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+    } else {
+      import('hls.js').then(({ default: Hls }) => {
+        if (!Hls.isSupported()) return;
+        const hls = new Hls({ capLevelToPlayerSize: true });
+        hls.loadSource(src);
+        hls.attachMedia(video);
+      });
+    }
+  }
+</script>

@@ -1,0 +1,50 @@
+---
+interface Props {
+  prompt: string;
+  label?: string;
+  negativePrompt?: string;
+  params?: string;
+}
+
+const { prompt, label = 'Prompt', negativePrompt, params } = Astro.props;
+const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// highlight [SLOTS] and {variables}
+const highlighted = escape(prompt.trim()).replace(/(\[[^\]\n]+\]|\{[^}\n]+\})/g, '<span class="var">$1</span>');
+const copyText = [prompt.trim(), params].filter(Boolean).join(' ');
+---
+
+<figure class="prompt" style="margin:0">
+  <figcaption class="prompt__head">
+    <span class="prompt__label">
+      <span class="prompt__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="eyebrow">{label}</span>
+    </span>
+    <button class="copy" type="button" data-copy={copyText}>Copy</button>
+  </figcaption>
+  <pre class="prompt__body" set:html={highlighted} />
+  {(negativePrompt || params) && (
+    <div class="prompt__extra">
+      {params && <div><span>params&nbsp;&nbsp;</span>{params}</div>}
+      {negativePrompt && <div><span>negative </span>{negativePrompt}</div>}
+    </div>
+  )}
+  <slot />
+</figure>
+
+<script>
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        btn.dataset.copied = '';
+        btn.textContent = 'Copied ✓';
+        setTimeout(() => {
+          delete btn.dataset.copied;
+          btn.textContent = 'Copy';
+        }, 1600);
+      } catch {
+        btn.textContent = 'Select & copy';
+      }
+    });
+  }
+</script>

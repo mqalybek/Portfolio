@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.env
+.env.*
+# full-size videos go to Bunny Stream / R2, never into git
+media-out/
+*.mov
+.DS_Store
